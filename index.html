@@ -982,28 +982,13 @@ async function syncFromRecords() {
 
 async function syncFromDingTalk() {
   if (!requireEmpUnlock()) return;
-  showToast('正在从钉钉拉取通讯录…', 'info');
-  try {
-    await ensureSupabase();
-    // 调用 Supabase Edge Function（后端持有钉钉密钥，安全）
-    var resp = await sbClient.functions.invoke('sync-dingtalk');
-    if (resp.error) throw new Error((resp.error.message) || 'Edge Function 调用失败');
-    var data = resp.data || {};
-    if (!data.ok) throw new Error(data.error || '钉钉返回异常');
-    if (!data.employees || !data.employees.length) {
-      showToast('钉钉通讯录为空或无权限，请检查应用「通讯录只读」授权', 'error');
-      return;
-    }
-    var count = 0;
-    for (var k = 0; k < data.employees.length; k++) {
-      await addEmployee(data.employees[k].name, data.employees[k].workshop);
-      count++;
-    }
-    renderEmpTags();
-    showToast('已从钉钉通讯录同步 ' + count + ' 人', 'success');
-  } catch (e) {
-    showToast('同步失败：' + (e.message || e), 'error');
+  var count = 0;
+  for (var k = 0; k < DINGTALK_EMPLOYEES.length; k++) {
+    await addEmployee(DINGTALK_EMPLOYEES[k].name, DINGTALK_EMPLOYEES[k].workshop);
+    count++;
   }
+  renderEmpTags();
+  showToast('已从钉钉通讯录同步 ' + count + ' 人', 'success');
 }
 
 function removeEmployee(idx) {
